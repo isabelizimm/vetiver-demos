@@ -1,0 +1,11 @@
+{
+    "https://colorado.rstudio.com/rsc": {
+        "server_url": "https://colorado.rstudio.com/rsc",
+        "filename": "/Users/isabelzimmerman/code/github/vetiverpydemo/superbowlads",
+        "app_url": "https://colorado.rstudio.com/rsc/connect/#/apps/e5a6dc06-4839-469f-b6dd-2fc03a8abf7f",
+        "app_id": "e5a6dc06-4839-469f-b6dd-2fc03a8abf7f",
+        "app_guid": "e5a6dc06-4839-469f-b6dd-2fc03a8abf7f",
+        "title": "superbowlads",
+        "app_mode": "python-fastapi"
+    }
+}

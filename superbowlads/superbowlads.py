@@ -9,8 +9,8 @@ np.random.seed(500)
 
 raw = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-02/youtube.csv')
 df = pd.DataFrame(raw)
-df = df[["like_count", "brand", "year", "funny", "patriotic", \
-    "celebrity", "danger", "animals", "view_count"]].dropna()
+df = df[["like_count", "funny", "show_product_quickly", "patriotic", \
+    "celebrity", "danger", "animals"]].dropna()
 X, y = df.iloc[:,1:],df['like_count']
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y,test_size=0.2)
 
@@ -22,4 +22,4 @@ ads = VetiverModel(pipe, save_ptype = True, ptype_data=X_train, model_name = "su
 
 app = VetiverAPI(ads, check_ptype=True)
 
-app.run()
+api = app.app
