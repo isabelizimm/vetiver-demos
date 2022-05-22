@@ -23,3 +23,5 @@ ads = VetiverModel(pipe, save_ptype = True, ptype_data=X_train, model_name = "su
 app = VetiverAPI(ads, check_ptype=True)
 
 api = app.app
+
+app.run()
