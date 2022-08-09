@@ -137,3 +137,5 @@ dmypy.json
 .pyre/
 NOTES.md
 vetiver_model.joblib
+
+/.quarto/

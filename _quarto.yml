@@ -1,0 +1,65 @@
+project:
+  type: website
+
+website:
+  page-navigation: true
+  title: "Vetiver demos"
+  description: "Homepage for Vetiver demos"
+
+  repo-url: https://github.com/isabelizimm/vetiverpydemo
+  repo-actions: [edit, issue]
+
+  opengraph: true
+
+  page-footer:
+    right: "This page is built with ❤️ and [Quarto](https://quarto.org/)."
+    background: "#f3cbac"
+
+  sidebar:
+    background: "#f3cbac"
+    logo: "images/logo.png"
+    pinned: true
+    align: center
+    tools:
+      - icon: github
+        href: https://github.com/isabelizimm/vetiverpydemo
+        text: "GitHub"
+      - icon: book-fill
+        text: "Sakai"
+        menu:
+          - text: Vetiver Documentation
+            url: https://vetiver.rstudio.com/
+          - text: Python Function Reference
+            url: https://rstudio.github.io/vetiver-python/stable/
+          - text: R Function Reference
+            url: https://rstudio.github.io/vetiver-r/reference/
+
+    style: "docked"
+    search: true
+    collapse-level: 1
+    contents:
+      - href: index.qmd
+        text : Welcome
+      - section: "Python examples"
+        contents:
+          - href: superbowl-intro-py/notebook.ipynb
+            text: Intro to vetiver
+          - href: torch-new-models-py/notebook.ipynb
+            text: Using different models
+          - href: coffee-explore-deploy/notebook-workflow.ipynb
+            text: Exploring deployment options
+          - href: monitor-connect-py/monitor.ipynb
+            text: Monitoring with Connect
+
+format:
+  html:
+    theme:
+      light: [flatly]
+      dark: [darkly]
+    code-copy: true
+    code-overflow: wrap
+    toc: true
+
+freeze: auto
+
+editor: visual

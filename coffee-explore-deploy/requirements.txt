@@ -1,0 +1,3 @@
+git+https://github.com/tidymodels/vetiver-python@5b5319762a188b0813820ebc365f8f5dba98c2a7
+pandas
+scikit-learn

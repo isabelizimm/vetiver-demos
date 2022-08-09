@@ -1,0 +1,9 @@
+api_version: 1
+created: 20220809T163838Z
+description: null
+file: tree_metrics.csv
+file_size: 1305
+pin_hash: 225f432b2e6f8af1
+title: 'tree_metrics: a pinned 27 x 4 DataFrame'
+type: csv
+user: {}

@@ -1,0 +1,11 @@
+{
+    "https://colorado.rstudio.com/rsc": {
+        "server_url": "https://colorado.rstudio.com/rsc",
+        "filename": "/Users/isabelzimmerman/code/github/vetiverpydemo/coffeeratings",
+        "app_url": "https://colorado.rstudio.com/rsc/connect/#/apps/a42f06be-6e0e-4d5d-8d2c-2616ffeceed4",
+        "app_id": "a42f06be-6e0e-4d5d-8d2c-2616ffeceed4",
+        "app_guid": "a42f06be-6e0e-4d5d-8d2c-2616ffeceed4",
+        "title": "coffeeratings",
+        "app_mode": "python-fastapi"
+    }
+}
