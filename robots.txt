@@ -1,1 +1,1 @@
-Sitemap: https://isabelizimm.github.io/vetiverpydemo/sitemap.xml
+Sitemap: https://github.com/isabelizimm/vetiver-demos/sitemap.xml
