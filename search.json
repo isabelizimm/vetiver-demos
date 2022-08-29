@@ -1,65 +1,212 @@
 [
   {
-    "objectID": "coffee-explore-deploy/notebook-workflow.html",
-    "href": "coffee-explore-deploy/notebook-workflow.html",
-    "title": "Vetiver demos",
+    "objectID": "R/superbowl-ads/vetiver_demo.html",
+    "href": "R/superbowl-ads/vetiver_demo.html",
+    "title": "MLOps with vetiver",
     "section": "",
-    "text": "We previously wrote a pin to RSConnect that included a model to determine how many YouTube likes a Superbowl ad would receive. We can deploy that pin to different locations using a few helper functions.\n\nimport pins\nimport vetiver\n\nimport os\nimport rsconnect\nfrom dotenv import load_dotenv, find_dotenv\nload_dotenv(find_dotenv())\n\napi_key = os.getenv(\"API_KEY\")\nrsc_url = os.getenv(\"RSC_URL\")\n\nboard = pins.board_rsconnect(api_key=api_key, server_url=rsc_url, allow_pickle_read=True)\n\nFrom here, we can move our API from locally hosted to other locations. Vetiver offers built-in functionality to deploy our model to Connect.\n\nconnect_server = rsconnect.api.RSConnectServer(url = rsc_url, api_key = api_key)\n\nvetiver.deploy_rsconnect(\n    connect_server = connect_server, \n    board = board, \n    pin_name = \"isabel.zimmerman/superbowl_rf\", \n    version = \"59869\")\n\nHowever, other cloud deployments may require a Dockerfile. For this workflow, we’ll need first write_app() to generate a dedicated app.py file to be stored inside our container, and then write_docker() to create a Dockerfile.\n\nvetiver.write_app(board=board, pin_name=\"isabel.zimmerman/superbowl_rf\")\nvetiver.write_docker(app_file=\"app.py\")"
+    "text": "MLOps cycle\n\n\nData scientists have effective tools that they ❤️ to:\n\ncollect data\nprepare, manipulate, refine data\ntrain models\n\nThere is a lack 😩 of effective tools (especially open source) to:\n\nput models into production\nmonitor model performance\ntrigger retraining"
   },
   {
-    "objectID": "superbowl-intro-py/notebook.html",
-    "href": "superbowl-intro-py/notebook.html",
-    "title": "Vetiver demos",
+    "objectID": "R/superbowl-ads/vetiver_demo.html#what-is-vetiver-httpsvetiver.rstudio.com",
+    "href": "R/superbowl-ads/vetiver_demo.html#what-is-vetiver-httpsvetiver.rstudio.com",
+    "title": "MLOps with vetiver",
+    "section": "What is vetiver? https://vetiver.rstudio.com/",
+    "text": "What is vetiver? https://vetiver.rstudio.com/\n\nVetiver, the oil of tranquility, is used as a stabilizing ingredient in perfumery to preserve more volatile fragrances.\n\nThe goal of vetiver is to provide fluent tooling to version, share, deploy, and monitor a trained model."
+  },
+  {
+    "objectID": "R/superbowl-ads/vetiver_demo.html#build-a-model",
+    "href": "R/superbowl-ads/vetiver_demo.html#build-a-model",
+    "title": "MLOps with vetiver",
+    "section": "Build a model",
+    "text": "Build a model\n\nlibrary(tidyverse)\nsuperbowl_ads_raw <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-02/youtube.csv')\n\nsuperbowl_ads_raw %>%\n    select(brand, funny:animals, like_count)\n\nsuperbowl_ads <-\n    superbowl_ads_raw %>%\n    select(funny:animals, like_count) %>%\n    na.omit()\n\n\nlibrary(tidymodels)\n\nrf_spec <- rand_forest(mode = \"regression\")\nrf_form <- like_count ~ .\n\nrf_fit <-\n    workflow(rf_form, rf_spec) %>%\n    fit(superbowl_ads)\n\nData scientists use tools they love for these steps, like the tidyverse, pandas, tidymodels, scikit-learn, etc."
+  },
+  {
+    "objectID": "R/superbowl-ads/vetiver_demo.html#version-and-deploy-a-model",
+    "href": "R/superbowl-ads/vetiver_demo.html#version-and-deploy-a-model",
+    "title": "MLOps with vetiver",
+    "section": "Version and deploy a model",
+    "text": "Version and deploy a model\nCreate a deployable model object:\n\nlibrary(vetiver)\nv <- vetiver_model(rf_fit, \"superbowl_rf\")\nv\n\nVersion and share the model:\n\nlibrary(pins)\nmodel_board <- board_rsconnect() ## also support board_s3(), board_azure(), etc\nmodel_board %>% vetiver_pin_write(v)\n\nDocument model: https://vetiver.rstudio.com/learn-more/model-card.html\nDeploy model as a REST API:\n\nlibrary(plumber)\npr() %>%\n    vetiver_api(v, debug = TRUE) %>%\n    pr_run()\n\nDeploy to Connect: https://rstudio.github.io/vetiver-r/dev/reference/vetiver_deploy_rsconnect.html\nDeploy via Docker (after creating plumber file via vetiver_write_plumber(model_board, \"julia.silge/superbowl_rf\")):\n\nvetiver_write_docker(v)"
+  },
+  {
+    "objectID": "R/superbowl-ads/vetiver_demo.html#predict-from-a-model",
+    "href": "R/superbowl-ads/vetiver_demo.html#predict-from-a-model",
+    "title": "MLOps with vetiver",
+    "section": "Predict from a model",
+    "text": "Predict from a model\nPredict for remote vetiver model:\n\n## source train-rf.R\n\nsuperbowl_endpoint <- vetiver_endpoint(\"http://127.0.0.1:8080/predict\")\nsuperbowl_endpoint\n\n\nnew_ads <- superbowl_ads %>% select(-like_count) %>% slice_sample(n = 3)\nnew_ads\n\npredict(superbowl_endpoint, new_ads)"
+  },
+  {
+    "objectID": "R/superbowl-ads/vetiver_demo.html#example-apis-to-explore",
+    "href": "R/superbowl-ads/vetiver_demo.html#example-apis-to-explore",
+    "title": "MLOps with vetiver",
+    "section": "Example APIs to explore:",
+    "text": "Example APIs to explore:\n\nPredict whether content on Netflix is a TV show or movie (unstructured text data): https://colorado.rstudio.com/rsc/netflix-descriptions/\nPredict ridership at Chicago Clark & Lake “L” station (complex time series, robust checking of new data): https://colorado.rstudio.com/rsc/chicago-ridership-api/"
+  },
+  {
+    "objectID": "R/superbowl-ads/vetiver_demo.html#whats-next-for-vetiver",
+    "href": "R/superbowl-ads/vetiver_demo.html#whats-next-for-vetiver",
+    "title": "MLOps with vetiver",
+    "section": "What’s next for vetiver?",
+    "text": "What’s next for vetiver?\nhttps://github.com/orgs/rstudio/projects/82/views/3"
+  },
+  {
+    "objectID": "R/biv-svm/train_sagemaker.html",
+    "href": "R/biv-svm/train_sagemaker.html",
+    "title": "Using vetiver on SageMaker",
     "section": "",
-    "text": "Data scientists can still use the tools they are most comfortable with for the bulk of their workflow.\n\nimport pandas as pd\nimport numpy as np\nfrom sklearn import model_selection, preprocessing, pipeline\nfrom sklearn.ensemble import RandomForestRegressor\nimport rsconnect\nimport vetiver\nfrom vetiver import vetiver_pin_write, vetiver_endpoint\n\nimport os\nfrom dotenv import load_dotenv, find_dotenv\nload_dotenv(find_dotenv())\n\napi_key = os.getenv(\"API_KEY\")\nrsc_url = os.getenv(\"RSC_URL\")\nnp.random.seed(500)\n\nWe can read in our data, and fit a pipeline that has both the preprocessing steps and the model.\n\nraw = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-02/youtube.csv')\ndf = pd.DataFrame(raw)\n\n\ndf = df[[\"like_count\", \"funny\", \"show_product_quickly\", \"patriotic\", \\\n    \"celebrity\", \"danger\", \"animals\"]].dropna()\nX, y = df.iloc[:,1:],df['like_count']\nX_train, X_test, y_train, y_test = model_selection.train_test_split(X, y,test_size=0.2)\n\nle = preprocessing.OrdinalEncoder().fit(X)\nrf = RandomForestRegressor().fit(le.transform(X_train), y_train)\n\n\nrf_pipe = pipeline.Pipeline([('label_encoder',le), ('random_forest', rf)])\n\n\n\n\nUsers first create a deployable model object, VetiverModel(). This holds all the pieces necessary to deploy the model later.\nIn R, you saw the equivalent, vetiver_model().\n\nv = vetiver.VetiverModel(\n    rf_pipe, \n    ptype_data=X_train, \n    model_name = \"isabel.zimmerman/superbowl_rf\"\n)\n\n\nimport pins \nboard = pins.board_rsconnect(api_key=api_key, server_url=rsc_url, allow_pickle_read=True)\n\nvetiver_pin_write(board, v)\n\nWriting pin:\nName: 'isabel.zimmerman/superbowl_rf'\nVersion: 20220809T143202Z-fd402\n\n\n\n\n\nNext, intialize the API endpoint with VetiverAPI(). To run the API locally, use .run()\nIn R, you saw the equivalents, vetiver_api() and pr_run().\n\napp = vetiver.VetiverAPI(v, check_ptype=True)\napp.run()\n\nThis is a great start to debug my API, but my end goal is to NOT run my model on my personal machine. We can instead deploy to a remote server, such as RStudio Connect. This will involve setting up a connection with the server and deploying our pinned model to RSConnect.\n\nconnect_server = rsconnect.api.RSConnectServer(url = rsc_url, api_key = api_key)\n\nWe can deploy our model, which is strongly linked to the version we just pinned above. Note: this model is already deployed, so no need to run this chunk again, unless we want to update our model.\n\nvetiver.deploy_rsconnect(\n    connect_server = connect_server, \n    board = board, \n    pin_name = \"isabel.zimmerman/superbowl_rf\", \n    version = \"59869\")\n\nWith the model deployed, we can interact with the API endpoint as if it were a model in memory.\n\nconnect_endpoint = vetiver_endpoint(\"https://colorado.rstudio.com/rsc/ads/predict\")\n\nresponse = vetiver.predict(data = X_test.head(5), endpoint = connect_endpoint)\nresponse\n\n\n\n\n\n  \n    \n      \n      prediction\n    \n  \n  \n    \n      0\n      452.581548\n    \n    \n      1\n      15054.536775\n    \n    \n      2\n      8830.437135\n    \n    \n      3\n      9872.934486\n    \n    \n      4\n      181.150403\n    \n  \n\n\n\n\nVetiver also helps make deployment easier for other cloud providers by offering functions to automatically write app.py files and Dockerfiles.\n\n# write app to be deployed within docker, or to other cloud provider\nvetiver.write_app(board, \"isabel.zimmerman/superbowl_rf\", version = \"59869\")\n\n# write Dockerfile\nvetiver.write_docker()"
+    "text": "library(tidymodels)\ndata(bivariate)\n\nbiv_rec <-\n  recipe(Class ~ ., data = bivariate_train) %>%\n  step_BoxCox(all_predictors())%>%\n  step_normalize(all_predictors())\n\nsvm_spec <-\n  svm_linear(mode = \"classification\") %>%\n  set_engine(\"LiblineaR\")\n\nsvm_fit <- workflow(biv_rec, svm_spec) %>%\n  fit(bivariate_train)"
+  },
+  {
+    "objectID": "R/biv-svm/train_sagemaker.html#create-a-deployable-vetiver-model",
+    "href": "R/biv-svm/train_sagemaker.html#create-a-deployable-vetiver-model",
+    "title": "Using vetiver on SageMaker",
+    "section": "Create a deployable vetiver model",
+    "text": "Create a deployable vetiver model\n\nlibrary(vetiver)\nv <- vetiver_model(svm_fit, \"biv-svm\")\nv\n\n## manually add paws.storage for now\nv$metadata$required_pkgs <- c(v$metadata$required_pkgs, \"paws.storage\")"
+  },
+  {
+    "objectID": "R/biv-svm/train_sagemaker.html#publish-and-version-model-on-aws-s3",
+    "href": "R/biv-svm/train_sagemaker.html#publish-and-version-model-on-aws-s3",
+    "title": "Using vetiver on SageMaker",
+    "section": "Publish and version model on AWS S3",
+    "text": "Publish and version model on AWS S3\n\nlibrary(paws)\nlibrary(pins)\nidentifier <- \"sagemaker-vetiver-biv-svm\"\nsvc <- s3()\nsvc$create_bucket(\n  Bucket = identifier,\n  CreateBucketConfiguration = list(LocationConstraint = \"us-east-2\")\n)\n\nmodel_board <- board_s3(bucket = identifier)\nvetiver_pin_write(model_board, v)"
+  },
+  {
+    "objectID": "R/biv-svm/train_sagemaker.html#build-docker-container",
+    "href": "R/biv-svm/train_sagemaker.html#build-docker-container",
+    "title": "Using vetiver on SageMaker",
+    "section": "Build Docker container",
+    "text": "Build Docker container\nTo create API app files:\n\nvetiver_write_plumber(\n  model_board,\n  \"biv-svm\",\n  type = \"class\",\n  path = \"/invocations\",\n  debug = TRUE,\n  file = \"plumber.R\"\n)\nvetiver_write_docker(v, port = 8080)\n\nIn terminal, in directory with Dockerfile (working directory in this demo):\n(May need to do export PATH=/home/sagemaker-user/.local/bin:$PATH first)\n\nsm-docker build . --repository sagemaker-vetiver-biv-svm:1.0 --bucket sagemaker-vetiver-biv-svm\n\nBe sure to notice/record image URI!"
+  },
+  {
+    "objectID": "R/biv-svm/train_sagemaker.html#deploy-image-as-sagemaker-model",
+    "href": "R/biv-svm/train_sagemaker.html#deploy-image-as-sagemaker-model",
+    "title": "Using vetiver on SageMaker",
+    "section": "Deploy image as SageMaker model",
+    "text": "Deploy image as SageMaker model\n\nlibrary(reticulate)\nlibrary(glue)\n\nsagemaker <- import(\"sagemaker\")\nrole <- sagemaker$get_execution_role()\n\n## set seed here for reproducible identifier\nmodel_identifier <- glue::glue(\"vetiver-sagemaker-\", ids::adjective_animal(style = \"kebab\"))\nsm_model_name <- model_identifier\nendpoint_config <- glue(\"{model_identifier}-endpoint-config\")\n\n\nsm <- sagemaker()\n\n## use image URI from building:\nsm$create_model(\n  ModelName = sm_model_name,\n  ExecutionRoleArn = role,\n  PrimaryContainer = list(\n    Image = \"350573666743.dkr.ecr.us-east-2.amazonaws.com/sagemaker-vetiver-biv-svm:1.0\"\n  )\n)\n\nsm$create_endpoint_config(\n  EndpointConfigName = endpoint_config, \n  ProductionVariants = list(\n    list(\n      VariantName = \"AllTraffic\",\n      ModelName = sm_model_name,\n      InitialInstanceCount = 1,\n      InstanceType = \"ml.t2.medium\",\n      InitialVariantWeight = 1\n    )\n  )\n)\n\nsm$create_endpoint(\n  EndpointName = sm_model_name, \n  EndpointConfigName = endpoint_config\n)"
+  },
+  {
+    "objectID": "R/biv-svm/train_sagemaker.html#make-a-prediction-with-your-deployed-model",
+    "href": "R/biv-svm/train_sagemaker.html#make-a-prediction-with-your-deployed-model",
+    "title": "Using vetiver on SageMaker",
+    "section": "Make a prediction with your deployed model",
+    "text": "Make a prediction with your deployed model\nMake a prediction like so in the interactive visual documentation:\n[\n  {\n    \"A\": 100,\n    \"B\": 10\n  },\n  {\n    \"A\": 10,\n    \"B\": 10\n  } \n]\nGet predictions in R:\n\nnew_biv <- bivariate_test %>% slice_sample(n = 50) %>% jsonlite::toJSON()\nsm_runtime <- sagemakerruntime()\npreds <- sm_runtime$invoke_endpoint(sm_model_name, new_biv)\n\npreds_parsed <- rawToChar(preds$Body) %>% jsonlite::fromJSON()\nas_tibble(preds_parsed)"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-docker.html",
+    "href": "R/netflix-descriptions/train-netflix-docker.html",
+    "title": "Deploy with Docker",
+    "section": "",
+    "text": "See this model deployed on RStudio Connect at https://colorado.rstudio.com/rsc/netflix-descriptions/"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-docker.html#train-a-model",
+    "href": "R/netflix-descriptions/train-netflix-docker.html#train-a-model",
+    "title": "Deploy with Docker",
+    "section": "Train a model",
+    "text": "Train a model\n\nlibrary(tidymodels)\nlibrary(textrecipes)\nlibrary(themis)\n\nurl <- \"https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-04-20/netflix_titles.csv\"\n\nnetflix_types <- readr::read_csv(url) %>%\n    select(type, description)\n\nset.seed(123)\nnetflix_split <- netflix_types %>%\n    select(type, description) %>%\n    initial_split(strata = type)\n\nnetflix_train <- training(netflix_split)\nnetflix_test <- testing(netflix_split)\n\nnetflix_rec <- recipe(type ~ description, data = netflix_train) %>%\n    step_tokenize(description) %>%\n    step_tokenfilter(description, max_tokens = 1e3) %>%\n    step_tfidf(description) %>%\n    step_normalize(all_numeric_predictors()) %>%\n    step_smote(type)\n\nsvm_spec <- svm_linear() %>%\n    set_mode(\"classification\") %>%\n    set_engine(\"LiblineaR\")\n\nnetflix_fit <-\n    workflow(netflix_rec, svm_spec) %>%\n    fit(netflix_train)"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-docker.html#create-a-deployable-vetiver-model",
+    "href": "R/netflix-descriptions/train-netflix-docker.html#create-a-deployable-vetiver-model",
+    "title": "Deploy with Docker",
+    "section": "Create a deployable vetiver model",
+    "text": "Create a deployable vetiver model\n\nlibrary(vetiver)\nv <- vetiver_model(netflix_fit, \"netflix_descriptions\")\nv"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-docker.html#publish-and-version-model",
+    "href": "R/netflix-descriptions/train-netflix-docker.html#publish-and-version-model",
+    "title": "Deploy with Docker",
+    "section": "Publish and version model",
+    "text": "Publish and version model\nFor this example, we’ll use RStudio Connect (but could use any pin board, as long as Docker container can authenticate to it).\n\nlibrary(pins)\nmodel_board <- board_rsconnect()\nvetiver_pin_write(model_board, v)"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-docker.html#create-a-docker-image",
+    "href": "R/netflix-descriptions/train-netflix-docker.html#create-a-docker-image",
+    "title": "Deploy with Docker",
+    "section": "Create a Docker image",
+    "text": "Create a Docker image\n\nvetiver_write_plumber(model_board, \"julia.silge/netflix_descriptions\", debug = TRUE)\nvetiver_write_docker(v)\n\nWhat does Dockerfile look like?\n\n\n\nBuilding the Docker container takes a while because it installs all the packages needed to make a prediction with this model. (I’m using --platform linux/amd64 because I am on an ARM architecture but I want to use RSPM for fast installation of binaries.)\ndocker build --platform linux/amd64 -t netflix-descriptions .\nAlso the resulting image is a bit big (>2Gb) since this is an NLP model that requires a lot of packages.\nNow run! To authenticate to RStudio Connect (to get the pinned vetiver model), I will pass in an .Renviron file:\ndocker run --env-file .Renviron --rm -p 8000:8000 netflix-descriptions\nThe Docker container is now running! You can interact with it such as by visiting in a browser at http://127.0.0.1:8000/__docs__/\nWhen you’re done, stop all Docker containers with\ndocker stop $(docker ps -a -q)"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-s3.html",
+    "href": "R/netflix-descriptions/train-netflix-s3.html",
+    "title": "Publish and version with AWS S3",
+    "section": "",
+    "text": "library(tidymodels)\nlibrary(textrecipes)\nlibrary(themis)\n\nurl <- \"https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-04-20/netflix_titles.csv\"\n\nnetflix_types <- readr::read_csv(url) %>%\n    select(type, description)\n\nset.seed(123)\nnetflix_split <- netflix_types %>%\n    select(type, description) %>%\n    initial_split(strata = type)\n\nnetflix_train <- training(netflix_split)\nnetflix_test <- testing(netflix_split)\n\nnetflix_rec <- recipe(type ~ description, data = netflix_train) %>%\n    step_tokenize(description) %>%\n    step_tokenfilter(description, max_tokens = 1e3) %>%\n    step_tfidf(description) %>%\n    step_normalize(all_numeric_predictors()) %>%\n    step_smote(type)\n\nsvm_spec <- svm_linear() %>%\n    set_mode(\"classification\") %>%\n    set_engine(\"LiblineaR\")\n\nnetflix_fit <-\n    workflow(netflix_rec, svm_spec) %>%\n    fit(netflix_train)"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-s3.html#create-a-deployable-vetiver-model",
+    "href": "R/netflix-descriptions/train-netflix-s3.html#create-a-deployable-vetiver-model",
+    "title": "Publish and version with AWS S3",
+    "section": "Create a deployable vetiver model",
+    "text": "Create a deployable vetiver model\n\nlibrary(vetiver)\nv <- vetiver_model(netflix_fit, \"netflix_descriptions\")\nv\n\n## manually add paws.storage for now\nv$metadata$required_pkgs <- c(v$metadata$required_pkgs, \"paws.storage\")"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-s3.html#publish-and-version-model-on-aws-s3",
+    "href": "R/netflix-descriptions/train-netflix-s3.html#publish-and-version-model-on-aws-s3",
+    "title": "Publish and version with AWS S3",
+    "section": "Publish and version model on AWS S3",
+    "text": "Publish and version model on AWS S3\nBefore running the next code chunk, you need to authenticate to AWS. I use (in the terminal):\naws configure sso\nNow in R:\n\nlibrary(paws)\nlibrary(glue)\nlibrary(pins)\nset.seed(1)\nidentifier <- glue::glue(\"vetiver-\", ids::adjective_animal(style = \"kebab\"))\nidentifier <- as.character(identifier)\nsvc <- s3()\nsvc$create_bucket(\n    Bucket = identifier,\n    CreateBucketConfiguration = list(LocationConstraint = \"us-east-2\")\n)\n\nmodel_board <- board_s3(bucket = identifier)\nvetiver_pin_write(model_board, v)"
+  },
+  {
+    "objectID": "R/netflix-descriptions/train-netflix-s3.html#create-api",
+    "href": "R/netflix-descriptions/train-netflix-s3.html#create-api",
+    "title": "Publish and version with AWS S3",
+    "section": "Create API",
+    "text": "Create API\n\nlibrary(plumber)\npr() %>%\n    vetiver_api(v, debug = TRUE) %>%\n    pr_run(port = 8088)"
   },
   {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Vetiver examples",
     "section": "",
-    "text": "If you are looking for more in-depth documentation, please visit the official vetiver documentaion."
+    "text": "GIPHY\n\n\nIf you are looking for more in-depth documentation, please visit the official vetiver documentaion."
   },
   {
-    "objectID": "monitor-connect-py/monitor.html",
-    "href": "monitor-connect-py/monitor.html",
-    "title": "Monitor",
-    "section": "",
-    "text": "The vetiver framework offers functions to fluently compute, store, and plot model metrics. These functions are particularly suited to monitoring your model using multiple performance metrics over time.\nWhen a model is deployed, new data comes in over time, even if time is not a feature for prediction. Even if your model does not explicitly use any dates, a measure of time like a date can affect your model performance."
-  },
-  {
-    "objectID": "monitor-connect-py/monitor.html#build-a-model",
-    "href": "monitor-connect-py/monitor.html#build-a-model",
-    "title": "Monitor",
-    "section": "Build a model",
-    "text": "Build a model\n\nfrom vetiver import VetiverModel\nfrom pins import board_folder\n\nmodel_board = board_folder(\".\", allow_pickle_read=True)\nv = VetiverModel.from_pin(model_board, \"cars\")"
-  },
-  {
-    "objectID": "monitor-connect-py/monitor.html#compute-metrics",
-    "href": "monitor-connect-py/monitor.html#compute-metrics",
-    "title": "Monitor",
-    "section": "Compute metrics",
-    "text": "Compute metrics\nLet’s say we collect new data on fuel efficiency in cars and we want to monitor the performance of our model over time. We can compute multiple metrics at once over a certain time aggregation.\n\nimport vetiver\n\nimport pandas as pd\nfrom sklearn import metrics\nfrom datetime import timedelta\n\ncars = pd.read_csv(\"https://vetiver.rstudio.com/get-started/new-cars.csv\")\noriginal_cars = cars.iloc[:14, :].copy()\noriginal_cars[\"preds\"] = v.model.predict(\n    original_cars.drop(columns=[\"date_obs\", \"mpg\"])\n)\n\nmetric_set = [metrics.mean_absolute_error, \n  metrics.mean_squared_error, \n  metrics.r2_score]\n  \ntd = timedelta(weeks = 1)\n\noriginal_metrics = vetiver.compute_metrics(\n    data = original_cars, \n    date_var = \"date_obs\", \n    period = td, \n    metric_set = metric_set, \n    truth = \"mpg\", \n    estimate = \"preds\"\n)\n\noriginal_metrics\n\n\n\n\n\n  \n    \n      \n      index\n      n\n      metric\n      estimate\n    \n  \n  \n    \n      0\n      2022-03-24\n      7\n      mean_absolute_error\n      1.784605\n    \n    \n      1\n      2022-03-24\n      7\n      mean_squared_error\n      4.158348\n    \n    \n      2\n      2022-03-24\n      7\n      r2_score\n      0.679499\n    \n    \n      3\n      2022-03-31\n      7\n      mean_absolute_error\n      1.458550\n    \n    \n      4\n      2022-03-31\n      7\n      mean_squared_error\n      3.370279\n    \n    \n      5\n      2022-03-31\n      7\n      r2_score\n      0.892011"
-  },
-  {
-    "objectID": "monitor-connect-py/monitor.html#pin-metrics",
-    "href": "monitor-connect-py/monitor.html#pin-metrics",
-    "title": "Monitor",
-    "section": "Pin metrics",
-    "text": "Pin metrics\nThe first time you pin monitoring metrics, you can write to a board as normal.\n\nmodel_board.pin_write(original_metrics, \"tree_metrics\", type = \"csv\")\n\nHowever, when adding new metrics measurements to your pin as you continue to gather new data and monitor, you may have dates that overlap with those already in the pin, depending on your monitoring strategy. You can choose how to handle overlapping dates with the overwrite argument.\n\n# dates overlap with existing metrics:\nnew_cars = cars.iloc[7:, :].copy()\nnew_cars[\"preds\"] = v.model.predict(\n    new_cars.drop(columns=[\"date_obs\", \"mpg\"])\n)\n\nnew_metrics = vetiver.compute_metrics(\n    data = new_cars, \n    date_var = \"date_obs\", \n    period = td, \n    metric_set = metric_set, \n    truth = \"mpg\", \n    estimate = \"preds\"\n)\n                    \nvetiver.pin_metrics(\n    model_board, \n    new_metrics, \n    \"tree_metrics\", \n    overwrite = True\n)"
-  },
-  {
-    "objectID": "monitor-connect-py/monitor.html#plot-metrics",
-    "href": "monitor-connect-py/monitor.html#plot-metrics",
-    "title": "Monitor",
-    "section": "Plot metrics",
-    "text": "Plot metrics\nYou can visualize your set of computed metrics and your model’s performance.\n\nmonitoring_metrics = model_board.pin_read(\"tree_metrics\", version=\"20220809T163838Z-225f4\")\np = vetiver.plot_metrics(df_metrics = monitoring_metrics)\np.update_yaxes(matches=None)\np.write_image(\"../images/monitor.png\")\n\n\n\n\nplot of monitoring data"
-  },
-  {
-    "objectID": "torch-new-models-py/notebook.html",
-    "href": "torch-new-models-py/notebook.html",
+    "objectID": "python/torch-new-models-py/notebook.html",
+    "href": "python/torch-new-models-py/notebook.html",
     "title": "Vetiver demos",
     "section": "",
     "text": "Data scientists can still use the tools they are most comfortable with for the bulk of their workflow. Here, we can see using torch for a deep learning task of some random points.\n\nimport torch.nn as nn\nimport torch\nimport numpy as np\n\nimport vetiver\n\n\n# Hyper-parameters\ninput_size = 1\noutput_size = 1\nnum_epochs = 60\nlearning_rate = 0.001\n\n# # Toy dataset\nx_train = np.array([[3.3], [4.4], [5.5], [6.71], [6.93], [4.168], \n                    [9.779], [6.182], [7.59], [2.167], [7.042], \n                    [10.791], [5.313], [7.997], [3.1]], dtype=np.float32)\n\ny_train = np.array([[1.7], [2.76], [2.09], [3.19], [1.694], [1.573], \n                    [3.366], [2.596], [2.53], [1.221], [2.827], \n                    [3.465], [1.65], [2.904], [1.3]], dtype=np.float32)\n\n# Linear regression model\nmodel = nn.Linear(input_size, output_size)\n\n# Loss and optimizer\ncriterion = nn.MSELoss()\noptimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)  \n\n# Train the model\nfor epoch in range(num_epochs):\n    # Convert numpy arrays to torch tensors\n    inputs = torch.from_numpy(x_train)\n    targets = torch.from_numpy(y_train)\n\n    # Forward pass\n    outputs = model(inputs)\n    loss = criterion(outputs, targets)\n    \n    # Backward and optimize\n    optimizer.zero_grad()\n    loss.backward()\n    optimizer.step()\n    \n\n\n\n\nJust like we saw with previous models we can create a deployable model object from our torch model and version with pins.\n\nv = vetiver.VetiverModel(\n    model = model, \n    save_ptype = True, \n    ptype_data=x_train,\n    model_name=\"torch\", \n    description=\"A regression model for testing purposes\"\n)\n\n\nimport pins\n\nboard = pins.board_temp(allow_pickle_read=True)\nvetiver.vetiver_pin_write(board, v)\n\nWriting pin:\nName: 'torch'\nVersion: 20220809T165227Z-999a5\n\n\n\n\n\nNext, we can make a local API endpoint with VetiverAPI() and start it with .run()\n\napi = vetiver.VetiverAPI(v, check_ptype=True)\napi.run()\n\n\n\n\nSometimes, you might use a model type that is not natively supported by Vetiver, or maybe you are writing a completely custom model that is not associated with any package at all. You are still able to deploy these models using a VetiverHandler()."
+  },
+  {
+    "objectID": "python/monitor-connect-py/monitor-chicago.html",
+    "href": "python/monitor-connect-py/monitor-chicago.html",
+    "title": "Vetiver demos",
+    "section": "",
+    "text": "import pins\nimport vetiver\n\nimport os\nfrom dotenv import load_dotenv, find_dotenv\nload_dotenv(find_dotenv())\n\napi_key = os.getenv(\"API_KEY\")\nrsc_url = os.getenv(\"RSC_URL\")\n\nboard = pins.board_rsconnect(api_key=api_key, server_url=rsc_url, allow_pickle_read=True)\n\n\nv = vetiver.VetiverModel.from_pin(\n    board, \n    \"isabel.zimmerman/ridership\", \n    version=\"60193\"\n)\n\nBring in some new data that lives on Connect.\n\nchicago = board.pin_read(\"isabel.zimmerman/new_chicago\")\noriginal_chicago = chicago.iloc[:100, :].copy()\n\n\noriginal_chicago[\"preds\"] = v.model.predict(\n    original_chicago.drop(columns=[\"ridership\", \"date\"])\n    )"
+  },
+  {
+    "objectID": "python/monitor-connect-py/monitor-chicago.html#compute-metrics",
+    "href": "python/monitor-connect-py/monitor-chicago.html#compute-metrics",
+    "title": "Vetiver demos",
+    "section": "Compute metrics",
+    "text": "Compute metrics\nLet’s say we collect new data on fuel efficiency in cars and we want to monitor the performance of our model over time. We can compute multiple metrics at once over a certain time aggregation.\n\nfrom sklearn import metrics\nfrom datetime import timedelta\n\nmetric_set = [metrics.mean_absolute_error, metrics.mean_squared_error]\ntd = timedelta(weeks = 1)\n\n\noriginal_metrics = vetiver.compute_metrics(data = original_chicago, \n                    date_var=\"date\", \n                    period = td, \n                    metric_set=metric_set, \n                    truth=\"ridership\", \n                    estimate=\"preds\")\noriginal_metrics\n\n\n\n\n\n  \n    \n      \n      index\n      n\n      metric\n      estimate\n    \n  \n  \n    \n      0\n      2014-10-01\n      7\n      mean_absolute_error\n      0.737403\n    \n    \n      1\n      2014-10-01\n      7\n      mean_squared_error\n      1.160815\n    \n    \n      2\n      2014-10-08\n      7\n      mean_absolute_error\n      1.349887\n    \n    \n      3\n      2014-10-08\n      7\n      mean_squared_error\n      2.743981\n    \n    \n      4\n      2014-10-15\n      7\n      mean_absolute_error\n      0.734174\n    \n    \n      5\n      2014-10-15\n      7\n      mean_squared_error\n      0.699126\n    \n    \n      6\n      2014-10-22\n      7\n      mean_absolute_error\n      1.131571\n    \n    \n      7\n      2014-10-22\n      7\n      mean_squared_error\n      2.773453\n    \n    \n      8\n      2014-10-29\n      7\n      mean_absolute_error\n      1.312606\n    \n    \n      9\n      2014-10-29\n      7\n      mean_squared_error\n      3.206079\n    \n    \n      10\n      2014-11-05\n      7\n      mean_absolute_error\n      0.926860\n    \n    \n      11\n      2014-11-05\n      7\n      mean_squared_error\n      1.724839\n    \n    \n      12\n      2014-11-12\n      7\n      mean_absolute_error\n      2.965623\n    \n    \n      13\n      2014-11-12\n      7\n      mean_squared_error\n      10.288502\n    \n    \n      14\n      2014-11-19\n      7\n      mean_absolute_error\n      3.099654\n    \n    \n      15\n      2014-11-19\n      7\n      mean_squared_error\n      12.421574\n    \n    \n      16\n      2014-11-26\n      7\n      mean_absolute_error\n      4.507480\n    \n    \n      17\n      2014-11-26\n      7\n      mean_squared_error\n      50.411399\n    \n    \n      18\n      2014-12-03\n      7\n      mean_absolute_error\n      1.578694\n    \n    \n      19\n      2014-12-03\n      7\n      mean_squared_error\n      3.486597\n    \n    \n      20\n      2014-12-10\n      7\n      mean_absolute_error\n      2.481994\n    \n    \n      21\n      2014-12-10\n      7\n      mean_squared_error\n      11.518612\n    \n    \n      22\n      2014-12-17\n      7\n      mean_absolute_error\n      1.795109\n    \n    \n      23\n      2014-12-17\n      7\n      mean_squared_error\n      3.544546\n    \n    \n      24\n      2014-12-24\n      7\n      mean_absolute_error\n      6.338219\n    \n    \n      25\n      2014-12-24\n      7\n      mean_squared_error\n      72.004391\n    \n    \n      26\n      2014-12-31\n      7\n      mean_absolute_error\n      3.253256\n    \n    \n      27\n      2014-12-31\n      7\n      mean_squared_error\n      21.068695\n    \n    \n      28\n      2015-01-07\n      2\n      mean_absolute_error\n      3.811720\n    \n    \n      29\n      2015-01-07\n      2\n      mean_squared_error\n      18.039774"
+  },
+  {
+    "objectID": "python/monitor-connect-py/monitor-chicago.html#pin-metrics",
+    "href": "python/monitor-connect-py/monitor-chicago.html#pin-metrics",
+    "title": "Vetiver demos",
+    "section": "Pin metrics",
+    "text": "Pin metrics\nThe first time you pin monitoring metrics, you can write to a board as normal.\n\nmy_board = pins.board_folder(path=\".\")\nmy_board.pin_write(original_metrics, \"metrics\", type = \"csv\")\n\nWriting pin:\nName: 'metrics'\nVersion: 20220810T132526Z-9b981\n\n\nMeta(title='metrics: a pinned 30 x 4 DataFrame', description=None, created='20220810T132526Z', pin_hash='9b9813939e75503c', file='metrics.csv', file_size=1556, type='csv', api_version=1, version=Version(created=datetime.datetime(2022, 8, 10, 13, 25, 26, 93420), hash='9b9813939e75503c'), name='metrics', user={})\n\n\nHowever, when adding new metrics measurements to your pin as you continue to gather new data and monitor, you may have dates that overlap with those already in the pin, depending on your monitoring strategy. You can choose how to handle overlapping dates with the overwrite argument.\n\n# dates overlap with existing metrics:\nnew_chicago = chicago.iloc[75:, :].copy()\nnew_chicago[\"preds\"] = v.model.predict(\n    new_chicago.drop(columns=[\"date\", \"ridership\"])\n)\n\nnew_metrics = vetiver.compute_metrics(data = new_chicago, \n                    date_var=\"date\", \n                    period = td, \n                    metric_set=metric_set, \n                    truth=\"ridership\", \n                    estimate=\"preds\")                    \n\n\nvetiver.pin_metrics(\n    my_board, \n    new_metrics, \n    \"metrics\", \n    overwrite = True\n)\n\nWriting pin:\nName: 'metrics'\nVersion: 20220810T132556Z-9871c\n\n\n\n\n\n\n  \n    \n      \n      index\n      n\n      metric\n      estimate\n    \n  \n  \n    \n      0\n      2014-10-01\n      7\n      mean_absolute_error\n      0.737403\n    \n    \n      1\n      2014-10-01\n      7\n      mean_squared_error\n      1.160815\n    \n    \n      2\n      2014-10-08\n      7\n      mean_absolute_error\n      1.349887\n    \n    \n      3\n      2014-10-08\n      7\n      mean_squared_error\n      2.743981\n    \n    \n      4\n      2014-10-15\n      7\n      mean_absolute_error\n      0.734174\n    \n    \n      ...\n      ...\n      ...\n      ...\n      ...\n    \n    \n      203\n      2016-08-08\n      7\n      mean_squared_error\n      1.402398\n    \n    \n      204\n      2016-08-15\n      7\n      mean_absolute_error\n      0.922150\n    \n    \n      205\n      2016-08-15\n      7\n      mean_squared_error\n      1.195525\n    \n    \n      206\n      2016-08-22\n      7\n      mean_absolute_error\n      0.946992\n    \n    \n      207\n      2016-08-22\n      7\n      mean_squared_error\n      1.052045\n    \n  \n\n208 rows × 4 columns"
+  },
+  {
+    "objectID": "python/monitor-connect-py/monitor-chicago.html#plot-metrics",
+    "href": "python/monitor-connect-py/monitor-chicago.html#plot-metrics",
+    "title": "Vetiver demos",
+    "section": "Plot metrics",
+    "text": "Plot metrics\nYou can visualize your set of computed metrics and your model’s performance.\n\nm = my_board.pin_read(\"metrics\", version=\"20220810T132556Z-9871c\")\n\n\nmonitor_plot = vetiver.plot_metrics(m)\nmonitor_plot.update_yaxes(matches=None)\nmonitor_plot.show()\n\nUnable to display output for mime type(s): application/vnd.plotly.v1+json"
+  },
+  {
+    "objectID": "python/coffee-explore-deploy/notebook-workflow.html",
+    "href": "python/coffee-explore-deploy/notebook-workflow.html",
+    "title": "Vetiver demos",
+    "section": "",
+    "text": "We previously wrote a pin to RSConnect that included a model to determine how many YouTube likes a Superbowl ad would receive. We can deploy that pin to different locations using a few helper functions.\n\nimport pins\nimport vetiver\n\nimport os\nimport rsconnect\nfrom dotenv import load_dotenv, find_dotenv\nload_dotenv(find_dotenv())\n\napi_key = os.getenv(\"API_KEY\")\nrsc_url = os.getenv(\"RSC_URL\")\n\nboard = pins.board_rsconnect(api_key=api_key, server_url=rsc_url, allow_pickle_read=True)\n\nFrom here, we can move our API from locally hosted to other locations. Vetiver offers built-in functionality to deploy our model to Connect.\n\nconnect_server = rsconnect.api.RSConnectServer(url = rsc_url, api_key = api_key)\n\nvetiver.deploy_rsconnect(\n    connect_server = connect_server, \n    board = board, \n    pin_name = \"isabel.zimmerman/superbowl_rf\", \n    version = \"59869\")\n\nHowever, other cloud deployments may require a Dockerfile. For this workflow, we’ll need first write_app() to generate a dedicated app.py file to be stored inside our container, and then write_docker() to create a Dockerfile.\n\nvetiver.write_app(board=board, pin_name=\"isabel.zimmerman/superbowl_rf\")\nvetiver.write_docker(app_file=\"app.py\")"
+  },
+  {
+    "objectID": "python/superbowl-intro-py/superbowl.html",
+    "href": "python/superbowl-intro-py/superbowl.html",
+    "title": "Vetiver demos",
+    "section": "",
+    "text": "Data scientists can still use the tools they are most comfortable with for the bulk of their workflow.\n\nimport pandas as pd\nimport numpy as np\nfrom sklearn import model_selection, preprocessing, pipeline\nfrom sklearn.ensemble import RandomForestRegressor\nimport rsconnect\nimport vetiver\nfrom vetiver import vetiver_pin_write, vetiver_endpoint\n\nimport os\nfrom dotenv import load_dotenv, find_dotenv\nload_dotenv(find_dotenv())\n\napi_key = os.getenv(\"API_KEY\")\nrsc_url = os.getenv(\"RSC_URL\")\nnp.random.seed(500)\n\nWe can read in our data, and fit a pipeline that has both the preprocessing steps and the model.\n\nraw = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-02/youtube.csv')\ndf = pd.DataFrame(raw)\n\n\ndf = df[[\"like_count\", \"funny\", \"show_product_quickly\", \"patriotic\", \\\n    \"celebrity\", \"danger\", \"animals\"]].dropna()\nX, y = df.iloc[:,1:],df['like_count']\nX_train, X_test, y_train, y_test = model_selection.train_test_split(X, y,test_size=0.2)\n\nle = preprocessing.OrdinalEncoder().fit(X)\nrf = RandomForestRegressor().fit(le.transform(X_train), y_train)\n\n\nrf_pipe = pipeline.Pipeline([('label_encoder',le), ('random_forest', rf)])\n\n\n\n\nUsers first create a deployable model object, VetiverModel(). This holds all the pieces necessary to deploy the model later.\nIn R, you saw the equivalent, vetiver_model().\n\nv = vetiver.VetiverModel(\n    rf_pipe, \n    ptype_data=X_train, \n    model_name = \"superbowl_rf\"\n)\n\n\nimport pins \nboard = pins.board_folder(path = \".\", allow_pickle_read=True)\n\nvetiver_pin_write(board, v)\n\nWriting pin:\nName: 'superbowl_rf'\nVersion: 20220819T113336Z-fd402\n\n\n\n\n\nNext, intialize the API endpoint with VetiverAPI(). To run the API locally, use .run()\nIn R, you saw the equivalents, vetiver_api() and pr_run().\n\napp = vetiver.VetiverAPI(v, check_ptype=True)\napp.run()\n\n/Users/isabelzimmerman/.pyenv/versions/3.9.11/envs/pydemo/lib/python3.9/site-packages/vetiver/utils.py:14: UserWarning: WARNING: Jupyter Notebooks are not considered stable environments for production code\n  warnings.warn(\nINFO:     Started server process [32750]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [32750]\n\n\nThis is a great start to debug my API, but my end goal is to NOT run my model on my personal machine. We can instead deploy to a remote server, such as RStudio Connect. This will involve setting up a connection with the server and deploying our pinned model to RSConnect.\nWe can deploy our model, which is strongly linked to the version we just pinned above. Note: this model is already deployed, so no need to run this chunk again, unless we want to update our model.\n\nconnect_server = rsconnect.api.RSConnectServer(url = rsc_url, api_key = api_key)\n\nvetiver.deploy_rsconnect(\n    connect_server = connect_server, \n    board = board, \n    pin_name = \"superbowl_rf\", \n    version = \"59869\")\n\nWith the model deployed, we can interact with the API endpoint as if it were a model in memory.\n\nconnect_endpoint = vetiver_endpoint(\"https://colorado.rstudio.com/rsc/ads/predict\")\n\nresponse = vetiver.predict(data = X_test.head(5), endpoint = connect_endpoint)\nresponse\n\nVetiver also helps make deployment easier for other cloud providers by offering functions to automatically write app.py files and Dockerfiles.\n\n# write app to be deployed within docker, or to other cloud provider\nvetiver.write_app(board, \"isabel.zimmerman/superbowl_rf\", version = \"59869\")\n\n\n# write Dockerfile\nvetiver.write_docker()"
   }
 ]
