@@ -1,0 +1,9 @@
+api_version: 1
+created: 20220812T164824Z
+description: null
+file: data.csv
+file_size: 6079
+pin_hash: 9710f7acb169bd97
+title: 'data: a pinned 180 x 6 DataFrame'
+type: csv
+user: {}

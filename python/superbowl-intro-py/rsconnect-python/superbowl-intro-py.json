@@ -1,0 +1,11 @@
+{
+    "https://colorado.rstudio.com/rsc": {
+        "server_url": "https://colorado.rstudio.com/rsc",
+        "filename": "/Users/isabelzimmerman/code/github/vetiverpydemo/superbowl-intro-py",
+        "app_url": "https://colorado.rstudio.com/rsc/connect/#/apps/c50b2190-fd66-46a8-968e-54abb153c794",
+        "app_id": "c50b2190-fd66-46a8-968e-54abb153c794",
+        "app_guid": "c50b2190-fd66-46a8-968e-54abb153c794",
+        "title": "superbowl-intro-py",
+        "app_mode": "python-fastapi"
+    }
+}

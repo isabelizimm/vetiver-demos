@@ -139,3 +139,11 @@ NOTES.md
 vetiver_model.joblib
 
 /.quarto/
+
+# R 
+
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Renviron

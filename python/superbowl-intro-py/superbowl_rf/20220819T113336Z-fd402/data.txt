@@ -1,0 +1,13 @@
+api_version: 1
+created: 20220819T113336Z
+description: Scikit-learn <class 'sklearn.pipeline.Pipeline'> model
+file: superbowl_rf.joblib
+file_size: 453600
+pin_hash: fd4024f7dcb1b77a
+title: 'superbowl_rf: a pinned Pipeline object'
+type: joblib
+user:
+  ptype: '{"funny": true, "show_product_quickly": false, "patriotic": false, "celebrity":
+    false, "danger": false, "animals": false}'
+  required_pkgs:
+  - vetiver

@@ -1,0 +1,9 @@
+api_version: 1
+created: 20220810T110551Z
+description: null
+file: metrics.csv
+file_size: 1514
+pin_hash: 4c7aab28be1d27b1
+title: 'metrics: a pinned 30 x 4 DataFrame'
+type: csv
+user: {}

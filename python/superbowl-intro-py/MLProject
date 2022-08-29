@@ -1,0 +1,5 @@
+name: sklearn_regression_example
+
+entry_points:
+  main:
+    command: "python train.py"
