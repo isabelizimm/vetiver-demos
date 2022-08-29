@@ -1,7 +1,7 @@
 project:
   type: website
   execute:
-    freeze: true  # never re-render during project render
+    eval: false  # never re-render during project render
 
 website:
   page-navigation: true
@@ -50,7 +50,7 @@ website:
             text: Using different models
           - href: python/coffee-explore-deploy/notebook-workflow.ipynb
             text: Exploring deployment options
-          - href: monitor-connect-py/monitor.ipynb
+          - href: python/monitor-connect-py/monitor.ipynb
             text: Monitoring with Connect
       - section: "R examples"
         contents:
