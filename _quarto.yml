@@ -1,8 +1,7 @@
 project:
   type: website
-  render:
-  - "!R/"
-  - "!python/"
+  execute:
+    freeze: true  # never re-render during project render
 
 website:
   page-navigation: true
