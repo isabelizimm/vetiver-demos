@@ -42,14 +42,24 @@ website:
         text : Welcome
       - section: "Python examples"
         contents:
-          - href: superbowl-intro-py/notebook.ipynb
+          - href: python/superbowl-intro-py/notebook.ipynb
             text: Intro to vetiver
-          - href: torch-new-models-py/notebook.ipynb
+          - href: python/torch-new-models-py/notebook.ipynb
             text: Using different models
-          - href: coffee-explore-deploy/notebook-workflow.ipynb
+          - href: python/coffee-explore-deploy/notebook-workflow.ipynb
             text: Exploring deployment options
           - href: monitor-connect-py/monitor.ipynb
             text: Monitoring with Connect
+      - section: "R examples"
+        contents:
+          - href: R/superbowl-ads/vetiver_demo.Rmd
+            text: MLOps with vetiver
+          - href: R/biv-svm/train_sagemaker.Rmd
+            text: Deploying on Sagemaker
+          - href: R/netflix-descriptions/train-netflix-s3.Rmd
+            text: Publish and version with S3
+          - href: R/netflix-descriptions/train-netflix-docker.Rmd
+            text: Deploy with Docker
 
 format:
   html:
