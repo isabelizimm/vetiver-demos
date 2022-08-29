@@ -1,5 +1,8 @@
 project:
   type: website
+  render:
+  - "!R/"
+  - "!python/"
 
 website:
   page-navigation: true
